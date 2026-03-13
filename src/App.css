@@ -1,0 +1,298 @@
+/* Base */
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  background: #f4f6f8;
+  font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+  color: #111;
+}
+
+.container {
+  max-width: 1000px;
+  margin: 40px auto;
+  padding: 0 16px;
+}
+
+h1 {
+  margin: 0 0 6px;
+  font-size: 28px;
+}
+
+h2 {
+  margin: 0 0 14px;
+  font-size: 18px;
+}
+
+/* Cards */
+.card {
+  background: #fff;
+  border: 1px solid #e7e7e7;
+  border-radius: 14px;
+  padding: 18px;
+  margin: 16px 0;
+  box-shadow: 0 8px 22px rgba(0, 0, 0, 0.04);
+}
+
+/* Top bar */
+.topbar {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 10px;
+}
+
+.sub {
+  font-size: 13px;
+  color: #666;
+}
+
+.topActions {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+/* Form layout */
+.form .row {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 12px;
+  flex-wrap: wrap;
+}
+
+.field {
+  flex: 1;
+  min-width: 220px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+label {
+  font-size: 13px;
+  color: #444;
+}
+
+/* Inputs unified */
+input,
+select,
+textarea {
+  width: 100%;
+  border: 1px solid #dcdcdc;
+  border-radius: 10px;
+  font-size: 14px;
+  font-family: inherit;
+  outline: none;
+  color: #111;
+  background: #fff;
+}
+
+input {
+  height: 40px;
+  padding: 0 12px;
+}
+
+select {
+  height: 40px;
+  padding: 0 12px;
+  cursor: pointer;
+  -webkit-appearance: menulist;
+  appearance: auto;
+}
+
+textarea {
+  padding: 10px 12px;
+  resize: vertical;
+}
+
+input:focus,
+select:focus,
+textarea:focus {
+  border-color: #9aa7ff;
+}
+
+/* Buttons / actions */
+.actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-top: 6px;
+  flex-wrap: wrap;
+}
+
+button {
+  height: 40px;
+  padding: 0 14px;
+  border: 1px solid transparent;
+  border-radius: 10px;
+  background: #111;
+  color: #fff;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+button:hover:not(:disabled) {
+  opacity: 0.92;
+}
+
+button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.ghost {
+  background: #fff;
+  color: #111;
+  border-color: #e7e7e7;
+}
+
+.ghost:hover:not(:disabled) {
+  background: #fafafa;
+}
+
+.danger {
+  background: #f2f2f2;
+  color: #111;
+  border-color: #e7e7e7;
+}
+
+.danger:hover:not(:disabled) {
+  background: #ececec;
+}
+
+.hint {
+  font-size: 13px;
+  color: #666;
+}
+
+.empty {
+  color: #666;
+}
+
+/* Table header + search */
+.tableHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 12px;
+  flex-wrap: wrap;
+}
+
+.search {
+  height: 40px;
+  min-width: 280px;
+  padding: 0 12px;
+  border: 1px solid #dcdcdc;
+  border-radius: 10px;
+  outline: none;
+  font-size: 14px;
+  background: #fff;
+  color: #111;
+}
+
+.search:focus {
+  border-color: #9aa7ff;
+}
+
+/* Table */
+.tableWrap {
+  overflow-x: auto;
+  overflow-y: hidden;
+  -webkit-overflow-scrolling: touch;
+  border-radius: 12px;
+  border: 1px solid #eee;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  min-width: 820px;
+}
+
+thead th {
+  text-align: left;
+  font-size: 13px;
+  color: #444;
+  background: #fafafa;
+  padding: 12px;
+  border-bottom: 1px solid #eee;
+  white-space: nowrap;
+}
+
+tbody td {
+  padding: 12px;
+  border-bottom: 1px solid #f1f1f1;
+  font-size: 14px;
+  vertical-align: top;
+}
+
+.actionsCol {
+  width: 180px;
+  text-align: right;
+  white-space: nowrap;
+}
+
+.rowActions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+}
+
+.footnote {
+  margin: 12px 0 0;
+  font-size: 13px;
+  color: #666;
+}
+
+/* ✅ Mobile (iPhone) */
+@media (max-width: 700px) {
+  .container {
+    margin: 12px auto;
+    padding: 0 12px;
+  }
+
+  h1 {
+    font-size: 22px;
+  }
+
+  .topbar {
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .topActions {
+    width: 100%;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  /* Form: empilement des champs */
+  .form .row {
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .field {
+    min-width: 100%;
+  }
+
+  /* Boutons full-width sur mobile */
+  .actions,
+  .topActions {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  button {
+    width: 100%;
+  }
+
+  .search {
+    width: 100%;
+    min-width: 0;
+  }
+}
