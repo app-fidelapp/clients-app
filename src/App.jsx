@@ -129,7 +129,29 @@ function Login() {
 
 export default function App() {
 
+
   const [activePage, setActivePage] = useState("clients");
+  const RESPONSABLES = ["Marc", "Gabriel", "Antonio"];
+  const STATUS_OPTIONS = [
+  "Prospect",
+  "Lead",
+  "Devis envoyé",
+  "Démo prévue",
+  "Client",
+  "SAV",
+  "Perdu",
+];
+
+  const [actions, setActions] = useState([]);
+  const [actionForm, setActionForm] = useState({
+    responsable: "Gabriel",
+    clientId: "",
+    action: "",
+    statutClient: "Prospect",
+  });
+
+  const [selectedClient, setSelectedClient] = useState(null);
+
   const [form, setForm] = useState(emptyForm());
   const [clients, setClients] = useState([]);
   const [search, setSearch] = useState("");
@@ -175,6 +197,25 @@ export default function App() {
     return () => unsub();
   }, [user]);
 
+  useEffect(() => {
+  if (!user) {
+    setActions([]);
+    return;
+  }
+
+  const q = query(collection(db, "actions"), orderBy("createdAt", "desc"));
+
+  const unsub = onSnapshot(q, (snap) => {
+    const data = snap.docs.map((d) => ({
+      id: d.id,
+      ...d.data(),
+    }));
+    setActions(data);
+  });
+
+  return () => unsub();
+}, [user]);
+
   // ✅ Guard global (c’est ICI, pas dans Login)
   if (authLoading) {
     return (
@@ -198,6 +239,44 @@ export default function App() {
     setForm((prev) => ({ ...prev, [name]: value }));
   }
 
+  function onChangeAction(e) {
+    const { name, value } = e.target;
+    setActionForm((prev) => ({ ...prev, [name]: value }));
+  }
+
+  async function addAction(e) {
+  e.preventDefault();
+
+  if (!actionForm.clientId || !actionForm.action.trim()) return;
+
+  const client = clients.find((c) => c.id === actionForm.clientId);
+
+  await addDoc(collection(db, "actions"), {
+    responsable: actionForm.responsable,
+    clientId: actionForm.clientId,
+    clientNom: client?.institut || client?.contact || "Client inconnu",
+    action: actionForm.action,
+    statutClient: actionForm.statutClient,
+    createdAt: serverTimestamp(),
+    updatedAt: serverTimestamp(),
+  });
+
+  setActionForm({
+    responsable: "Gabriel",
+    clientId: "",
+    action: "",
+    statutClient: "Prospect",
+  });
+}
+
+function getClientById(id) {
+  return clients.find((c) => c.id === id);
+}
+
+async function removeAction(id) {
+  if (!confirm("Supprimer cette action ?")) return;
+  await deleteDoc(doc(db, "actions", id));
+}
  async function addClient(e) {
   e.preventDefault();
   if (!isValid) return;
@@ -355,10 +434,10 @@ const filteredClients = !qSearch
 
         <button
           type="button"
-          className={`menuItem ${activePage === "agenda" ? "active" : ""}`}
-          onClick={() => setActivePage("agenda")}
+          className={`menuItem ${activePage === "actions" ? "active" : ""}`}
+          onClick={() => setActivePage("actions")}
         >
-          Agenda
+          Actions en cours
         </button>
 
         <button
@@ -622,27 +701,137 @@ const filteredClients = !qSearch
         </div>
       )}
 
-      {activePage === "agenda" && (
-        <div className="container">
-          <div className="card">
-            <h1>Agenda</h1>
-            <p className="sub">
-              Ici on pourra afficher Google Agenda et ajouter des actions.
-            </p>
+      {activePage === "actions" && (
+  <div className="container">
+    <div className="card">
+      <h1>Actions en cours</h1>
+      <p className="sub">
+        Suivi commercial des relances, infos envoyées, démos, devis et SAV.
+      </p>
+    </div>
 
-            <div className="agendaPlaceholder">
-              Intégration agenda à faire
-            </div>
+    <div className="card">
+      <h2>Ajouter une action</h2>
+
+      <form className="form" onSubmit={addAction}>
+        <div className="row">
+          <div className="field">
+            <label>Responsable</label>
+            <select
+              name="responsable"
+              value={actionForm.responsable}
+              onChange={onChangeAction}
+            >
+              {RESPONSABLES.map((r) => (
+                <option key={r} value={r}>
+                  {r}
+                </option>
+              ))}
+            </select>
           </div>
 
-          <div className="card">
-            <h2>Actions commerciales</h2>
-            <p className="sub">
-              Exemple : démo machine, rappel client, formation, SAV, rendez-vous.
-            </p>
+          <div className="field">
+            <label>Client</label>
+            <select
+              name="clientId"
+              value={actionForm.clientId}
+              onChange={onChangeAction}
+            >
+              <option value="">Sélectionner un client</option>
+              {clients.map((c) => (
+                <option key={c.id} value={c.id}>
+                  {c.institut} - {c.contact}
+                </option>
+              ))}
+            </select>
           </div>
         </div>
+
+        <div className="row">
+          <div className="field">
+            <label>Action</label>
+            <input
+              name="action"
+              value={actionForm.action}
+              onChange={onChangeAction}
+              placeholder="Ex: envoyer infos Laser"
+            />
+          </div>
+
+          <div className="field">
+            <label>Statut client</label>
+            <select
+              name="statutClient"
+              value={actionForm.statutClient}
+              onChange={onChangeAction}
+            >
+              {STATUS_OPTIONS.map((s) => (
+                <option key={s} value={s}>
+                  {s}
+                </option>
+              ))}
+            </select>
+          </div>
+        </div>
+
+        <div className="actions">
+          <button type="submit">Ajouter l'action</button>
+        </div>
+      </form>
+    </div>
+
+    <div className="card">
+      <h2>Liste des actions ({actions.length})</h2>
+
+      {actions.length === 0 ? (
+        <p className="empty">Aucune action en cours.</p>
+      ) : (
+        <div className="tableWrap">
+  <table>
+    <thead>
+      <tr>
+        <th>Responsable</th>
+        <th>Client</th>
+        <th>Action</th>
+        <th>Statut client</th>
+        <th className="actionsCol">Actions</th>
+      </tr>
+    </thead>
+    <tbody>
+      {actions.map((a) => (
+        <tr key={a.id}>
+          <td>{a.responsable}</td>
+          <td>
+            <button
+              type="button"
+              className="linkButton"
+              onClick={() => setSelectedClient(getClientById(a.clientId))}
+            >
+              {a.clientNom}
+            </button>
+          </td>
+          <td>{a.action}</td>
+          <td>{a.statutClient}</td>
+          <td className="actionsCol">
+            <div className="rowActions">
+              <button
+                type="button"
+                className="danger"
+                onClick={() => removeAction(a.id)}
+              >
+                Supprimer
+              </button>
+            </div>
+          </td>
+        </tr>
+      ))}
+    </tbody>
+  </table>
+</div>
       )}
+    </div>
+  </div>
+)}
 
       {activePage === "suivi" && (
         <div className="container">
@@ -655,6 +844,35 @@ const filteredClients = !qSearch
         </div>
       )}
     </main>
+    {selectedClient && (
+  <div className="modalOverlay" onClick={() => setSelectedClient(null)}>
+    <div className="modalCard" onClick={(e) => e.stopPropagation()}>
+      <div className="modalHeader">
+        <h2>Fiche client</h2>
+        <button
+          type="button"
+          className="ghost"
+          onClick={() => setSelectedClient(null)}
+        >
+          Fermer
+        </button>
+      </div>
+
+      <div className="modalBody">
+        <p><strong>Institut :</strong> {selectedClient.institut || "-"}</p>
+        <p><strong>Contact :</strong> {selectedClient.contact || "-"}</p>
+        <p><strong>Email :</strong> {selectedClient.email || "-"}</p>
+        <p><strong>Téléphone :</strong> {selectedClient.telephone || "-"}</p>
+        <p><strong>Ville :</strong> {selectedClient.ville || "-"}</p>
+        <p><strong>Pays :</strong> {selectedClient.pays || "-"}</p>
+        <p><strong>Machines :</strong> {selectedClient.machines?.join(", ") || "-"}</p>
+        <p><strong>Statut :</strong> {selectedClient.statut || "-"}</p>
+        <p><strong>Date installation :</strong> {selectedClient.date_installation || "-"}</p>
+        <p><strong>Notes :</strong> {selectedClient.notes || "-"}</p>
+      </div>
+    </div>
+  </div>
+)}
   </div>
 );
 }
