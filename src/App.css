@@ -9,7 +9,7 @@ body {
 }
 
 .container {
-  max-width: 1000px;
+  max-width: 1500px;
   margin: 40px auto;
   padding: 0 16px;
 }
@@ -247,6 +247,183 @@ tbody td {
   color: #666;
 }
 
+.checkboxGroup {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 12px;
+  margin-top: 8px;
+}
+
+.checkboxItem {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 14px;
+  border: 1px solid #d9d9d9;
+  border-radius: 12px;
+  background: #fff;
+  cursor: pointer;
+  transition: 0.2s ease;
+}
+
+.checkboxItem:hover {
+  border-color: #bdbdbd;
+  background: #fafafa;
+}
+
+.checkboxItem input[type="checkbox"] {
+  width: 18px;
+  height: 18px;
+  margin: 0;
+  flex-shrink: 0;
+}
+
+.checkboxItem span {
+  font-size: 15px;
+  line-height: 1.2;
+}
+
+.field.full {
+  grid-column: 1 / -1;
+}
+
+.badge {
+  padding: 4px 10px;
+  border-radius: 20px;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.badge.prospect {
+  background: #eef2ff;
+  color: #4f46e5;
+}
+
+.badge.client {
+  background: #e6f9f0;
+  color: #059669;
+}
+
+.badge.sav {
+  background: #fff4e5;
+  color: #d97706;
+}
+
+.appShell {
+  display: flex;
+  min-height: 100vh;
+  background: #f4f6f8;
+}
+
+.sidebar {
+  width: 260px;
+  background: #fff;
+  border-right: 1px solid #e7e7e7;
+  padding: 20px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.brandLogo {
+  width: 46px;
+  height: 46px;
+  object-fit: contain;
+  border-radius: 10px;
+}
+
+.brandText {
+  display: flex;
+  flex-direction: column;
+  line-height: 1.1;
+}
+
+.brandText strong {
+  font-size: 18px;
+}
+
+.brandText span {
+  font-size: 13px;
+  color: #666;
+}
+
+.menu {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.menuItem {
+  width: 100%;
+  height: 44px;
+  border: 1px solid #e7e7e7;
+  background: #fff;
+  color: #111;
+  border-radius: 12px;
+  text-align: left;
+  padding: 0 14px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.menuItem:hover {
+  background: #fafafa;
+}
+
+.menuItem.active {
+  background: #111;
+  color: #fff;
+  border-color: #111;
+}
+
+.sidebarBottom {
+  margin-top: auto;
+}
+
+.mainContent {
+  flex: 1;
+  min-width: 0;
+}
+
+.agendaPlaceholder {
+  min-height: 280px;
+  border: 1px dashed #d6d6d6;
+  border-radius: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #666;
+  background: #fafafa;
+}
+
+@media (max-width: 900px) {
+  .appShell {
+    flex-direction: column;
+  }
+
+  .sidebar {
+    width: 100%;
+    border-right: none;
+    border-bottom: 1px solid #e7e7e7;
+  }
+
+  .menu {
+    flex-direction: row;
+    flex-wrap: wrap;
+  }
+
+  .menuItem {
+    width: auto;
+    min-width: 140px;
+  }
+}
+
 /* ✅ Mobile (iPhone) */
 @media (max-width: 700px) {
   .container {
@@ -295,4 +472,6 @@ tbody td {
     width: 100%;
     min-width: 0;
   }
+
+
 }

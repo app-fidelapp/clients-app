@@ -33,11 +33,22 @@ function emptyForm() {
     telephone: "",
     ville: "",
     pays: "Belgique",
-    machine: "",
+    machines: [],
     statut: "Prospect",
     date_installation: "",
     notes: "",
   };
+}
+
+
+
+function handleMachineChange(e) {
+  const values = Array.from(e.target.selectedOptions, (option) => option.value);
+
+  setForm((prev) => ({
+    ...prev,
+    machines: values,
+  }));
 }
 
 function toISO(value) {
@@ -117,6 +128,8 @@ function Login() {
 }
 
 export default function App() {
+
+  const [activePage, setActivePage] = useState("clients");
   const [form, setForm] = useState(emptyForm());
   const [clients, setClients] = useState([]);
   const [search, setSearch] = useState("");
@@ -124,6 +137,15 @@ export default function App() {
 
   const [user, setUser] = useState(null);
   const [authLoading, setAuthLoading] = useState(true);
+
+  function toggleMachine(machine) {
+  setForm((prev) => ({
+    ...prev,
+    machines: prev.machines.includes(machine)
+      ? prev.machines.filter((m) => m !== machine)
+      : [...prev.machines, machine],
+  }));
+}
 
   // ✅ Auth listener
   useEffect(() => {
@@ -176,17 +198,27 @@ export default function App() {
     setForm((prev) => ({ ...prev, [name]: value }));
   }
 
-  async function addClient(e) {
-    e.preventDefault();
-    if (!isValid) return;
+ async function addClient(e) {
+  e.preventDefault();
+  if (!isValid) return;
 
+  const payload = {
+    ...form,
+    updatedAt: serverTimestamp(),
+  };
+
+  if (editingId) {
+    await updateDoc(doc(db, "clients", editingId), payload);
+    setEditingId(null);
+  } else {
     await addDoc(collection(db, "clients"), {
-      ...form,
+      ...payload,
       createdAt: serverTimestamp(),
     });
-
-    setForm(emptyForm());
   }
+
+  setForm(emptyForm());
+}
 
   function startEdit(client) {
     setEditingId(client.id);
@@ -197,7 +229,11 @@ export default function App() {
       telephone: client.telephone || "",
       ville: client.ville || "",
       pays: client.pays || "Belgique",
-      machine: client.machine || "",
+      machines: Array.isArray(client.machines)
+    ? client.machines
+    : client.machine
+    ? [client.machine]
+    : [],
       statut: client.statut || "Prospect",
       date_installation: client.date_installation || "",
       notes: client.notes || "",
@@ -298,231 +334,327 @@ const filteredClients = !qSearch
   }
 
   return (
-    <div className="container">
-      <div className="topbar">
-        <div>
-          <h1>Divina-Pro — Clients</h1>
-          <div className="sub">Connecté : {user.email}</div>
-        </div>
-
-        <div className="topActions">
-          <button className="ghost" onClick={exportCSV} disabled={clients.length === 0}>
-            Export CSV
-          </button>
-          <button className="danger" onClick={clearAll} disabled={clients.length === 0}>
-            Tout supprimer
-          </button>
-          <button className="ghost" onClick={() => signOut(auth)}>
-            Déconnexion
-          </button>
+  <div className="appShell">
+    <aside className="sidebar">
+      <div className="brand">
+        <img src="/logo-divina.png" alt="Divina-Pro" className="brandLogo" />
+        <div className="brandText">
+          <strong>Divina-Pro</strong>
+          <span>Client</span>
         </div>
       </div>
 
-      {/* ... le reste de ton UI (form + table) inchangé ... */}
-      {/* Pour gagner du temps, garde exactement ton JSX actuel ici */}
-      {/* IMPORTANT : ne change rien au reste, juste garde ce return et colle ton contenu */}
+      <nav className="menu">
+        <button
+          type="button"
+          className={`menuItem ${activePage === "clients" ? "active" : ""}`}
+          onClick={() => setActivePage("clients")}
+        >
+          Clients
+        </button>
 
+        <button
+          type="button"
+          className={`menuItem ${activePage === "agenda" ? "active" : ""}`}
+          onClick={() => setActivePage("agenda")}
+        >
+          Agenda
+        </button>
 
+        <button
+          type="button"
+          className={`menuItem ${activePage === "suivi" ? "active" : ""}`}
+          onClick={() => setActivePage("suivi")}
+        >
+          Suivi clients
+        </button>
+      </nav>
 
-      <div className="card">
-        <h2>{editingId ? "Modifier un client" : "Encoder un client"}</h2>
+      <div className="sidebarBottom">
+        <button type="button" className="ghost" onClick={() => signOut(auth)}>
+          Déconnexion
+        </button>
+      </div>
+    </aside>
 
-        <form onSubmit={editingId ? saveEdit : addClient} className="form">
-          <div className="row">
-            <div className="field">
-              <label>Nom de l’institut *</label>
-              <input
-                name="institut"
-                value={form.institut}
-                onChange={onChange}
-                placeholder="Beauty by Loula"
-                autoComplete="organization"
-              />
-            </div>
-
-            <div className="field">
-              <label>Date d'installation</label>
-              <input
-                type="date"
-                name="date_installation"
-                value={form.date_installation}
-                onChange={onChange}
-              />
-            </div>
-
-            <div className="field">
-              <label>Contact *</label>
-              <input
-                name="contact"
-                value={form.contact}
-                onChange={onChange}
-                placeholder="Prénom Nom"
-                autoComplete="name"
-              />
-            </div>
-          </div>
-
-          <div className="row">
-            <div className="field">
-              <label>Email *</label>
-              <input
-                name="email"
-                value={form.email}
-                onChange={onChange}
-                placeholder="contact@institut.com"
-                autoComplete="email"
-              />
-            </div>
-
-            <div className="field">
-              <label>Téléphone</label>
-              <input
-                name="telephone"
-                value={form.telephone}
-                onChange={onChange}
-                placeholder="+32 ..."
-                autoComplete="tel"
-              />
+    <main className="mainContent">
+      {activePage === "clients" && (
+        <div className="container">
+          <div className="topbar">
+            <div>
+              <h1>Clients</h1>
+              <div className="sub">Gestion des clients Divina-Pro</div>
             </div>
           </div>
 
-          <div className="row">
-            <div className="field">
-              <label>Ville</label>
-              <input name="ville" value={form.ville} onChange={onChange} placeholder="Liège" />
-            </div>
+          {/* CARD FORMULAIRE */}
+          <div className="card">
+            <h2>{editingId ? "Modifier un client" : "Ajouter un client"}</h2>
 
-            <div className="field">
-              <label>Pays</label>
-              <input name="pays" value={form.pays} onChange={onChange} />
-            </div>
+            <form className="form" onSubmit={editingId ? saveEdit : addClient}>
+              <div className="row">
+                <div className="field">
+                  <label>Institut *</label>
+                  <input
+                    name="institut"
+                    value={form.institut}
+                    onChange={onChange}
+                    placeholder="Beauty by Loula"
+                  />
+                </div>
+
+                <div className="field">
+                  <label>Date d'installation</label>
+                  <input
+                    type="date"
+                    name="date_installation"
+                    value={form.date_installation}
+                    onChange={onChange}
+                  />
+                </div>
+              </div>
+
+              <div className="row">
+                <div className="field">
+                  <label>Contact *</label>
+                  <input
+                    name="contact"
+                    value={form.contact}
+                    onChange={onChange}
+                    placeholder="Prénom Nom"
+                  />
+                </div>
+
+                <div className="field">
+                  <label>Email *</label>
+                  <input
+                    type="email"
+                    name="email"
+                    value={form.email}
+                    onChange={onChange}
+                    placeholder="contact@institut.com"
+                  />
+                </div>
+              </div>
+
+              <div className="row">
+                <div className="field">
+                  <label>Téléphone</label>
+                  <input
+                    name="telephone"
+                    value={form.telephone}
+                    onChange={onChange}
+                    placeholder="+32 ..."
+                  />
+                </div>
+
+                <div className="field">
+                  <label>Ville</label>
+                  <input
+                    name="ville"
+                    value={form.ville}
+                    onChange={onChange}
+                    placeholder="Liège"
+                  />
+                </div>
+              </div>
+
+              <div className="row">
+                <div className="field">
+                  <label>Pays</label>
+                  <input
+                    name="pays"
+                    value={form.pays}
+                    onChange={onChange}
+                    placeholder="Belgique"
+                  />
+                </div>
+
+                <div className="field">
+                  <label>Statut</label>
+                  <select
+                    name="statut"
+                    value={form.statut}
+                    onChange={onChange}
+                  >
+                    {STATUS_OPTIONS.map((s) => (
+                      <option key={s} value={s}>
+                        {s}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+
+              <div className="row">
+                <div className="field full">
+                  <label>Machines</label>
+                  <div className="checkboxGroup">
+                    {MACHINE_OPTIONS.map((machine) => (
+                      <label key={machine} className="checkboxItem">
+                        <input
+                          type="checkbox"
+                          checked={form.machines.includes(machine)}
+                          onChange={() => toggleMachine(machine)}
+                        />
+                        <span>{machine}</span>
+                      </label>
+                    ))}
+                  </div>
+                </div>
+              </div>
+
+              <div className="row">
+                <div className="field full">
+                  <label>Notes</label>
+                  <textarea
+                    name="notes"
+                    value={form.notes}
+                    onChange={onChange}
+                    rows="4"
+                    placeholder="Ex: demandé devis leasing 48 mois, rappel vendredi..."
+                  />
+                </div>
+              </div>
+
+              <div className="actions">
+                <button type="submit">
+                  {editingId ? "Enregistrer" : "Ajouter"}
+                </button>
+
+                {editingId && (
+                  <button
+                    type="button"
+                    className="ghost"
+                    onClick={() => {
+                      setEditingId(null);
+                      setForm(emptyForm());
+                    }}
+                  >
+                    Annuler
+                  </button>
+                )}
+
+                <span className="hint">
+                  Institut, contact et email sont obligatoires.
+                </span>
+              </div>
+            </form>
           </div>
 
-          <div className="row">
-            <div className="field">
-              <label>Machine</label>
-              <select name="machine" value={form.machine ?? ""} onChange={onChange}>
-                <option value="">—</option>
-                {MACHINE_OPTIONS.map((m) => (
-                  <option key={m} value={m}>
-                    {m}
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            <div className="field">
-              <label>Statut</label>
-              <select name="statut" value={form.statut ?? "Prospect"} onChange={onChange}>
-                {STATUS_OPTIONS.map((s) => (
-                  <option key={s} value={s}>
-                    {s}
-                  </option>
-                ))}
-              </select>
-            </div>
-          </div>
-
-          <div className="row">
-            <div className="field">
-              <label>Notes</label>
-              <textarea
-                name="notes"
-                value={form.notes}
-                onChange={onChange}
-                placeholder="Ex: demandé devis leasing 48 mois, rappel vendredi..."
-                rows={3}
+          {/* CARD TABLEAU */}
+          <div className="card">
+            <div className="tableHeader">
+              <h2>Tableau clients ({filteredClients.length})</h2>
+              <input
+                className="search"
+                placeholder="Rechercher (institut, email, machine, statut...)"
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
               />
             </div>
-          </div>
 
-          <div className="actions">
-            <button type="submit" disabled={!isValid}>
-              {editingId ? "Enregistrer" : "Ajouter"}
-            </button>
-
-            {editingId && (
-              <button
-                type="button"
-                className="ghost"
-                onClick={() => {
-                  setEditingId(null);
-                  setForm(emptyForm());
-                }}
-              >
-                Annuler
-              </button>
+            {filteredClients.length === 0 ? (
+              <p className="empty">Aucun client trouvé.</p>
+            ) : (
+              <div className="tableWrap">
+                <table>
+                  <thead>
+                    <tr>
+                      <th>Institut</th>
+                      <th>Contact</th>
+                      <th>Email</th>
+                      <th>Téléphone</th>
+                      <th>Ville</th>
+                      <th>Machine</th>
+                      <th>Date install</th>
+                      <th>Statut</th>
+                      <th className="actionsCol">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {filteredClients.map((c) => (
+                      <tr key={c.id}>
+                        <td>{c.institut}</td>
+                        <td>{c.contact}</td>
+                        <td>{c.email}</td>
+                        <td>{c.telephone || "-"}</td>
+                        <td>
+                          {c.ville || ""}
+                          {c.pays ? ` (${c.pays})` : ""}
+                        </td>
+                        <td>{c.machines?.join(", ") || "-"}</td>
+                        <td>{c.date_installation || "-"}</td>
+                        <td>{c.statut || "-"}</td>
+                        <td className="actionsCol">
+                          <div className="rowActions">
+                            <button
+                              type="button"
+                              className="ghost"
+                              onClick={() => startEdit(c)}
+                            >
+                              Modifier
+                            </button>
+                            <button
+                              type="button"
+                              className="danger"
+                              onClick={() => removeClient(c.id)}
+                            >
+                              Supprimer
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
             )}
 
-            {!isValid && <span className="hint">Institut, contact et email sont obligatoires.</span>}
+            {clients.length > 0 && (
+              <p className="footnote">
+                <button type="button" className="danger" onClick={clearAll}>
+                  Supprimer tous les clients
+                </button>
+              </p>
+            )}
           </div>
-        </form>
-      </div>
-
-      <div className="card">
-        <div className="tableHeader">
-          <h2>Tableau clients ({filteredClients.length})</h2>
-
-          <input
-            className="search"
-            placeholder="Rechercher (institut, email, machine, statut...)"
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-          />
         </div>
+      )}
 
-        {filteredClients.length === 0 ? (
-          <p className="empty">{clients.length === 0 ? "Aucun client pour le moment." : "Aucun résultat."}</p>
-        ) : (
-          <div className="tableWrap">
-            <table>
-              <thead>
-                <tr>
-                  <th>Institut</th>
-                  <th>Contact</th>
-                  <th>Email</th>
-                  <th>Téléphone</th>
-                  <th>Ville</th>
-                  <th>Machine</th>
-                  <th>Date install</th>
-                  <th>Statut</th>
-                  <th className="actionsCol">Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-                {filteredClients.map((c) => (
-                  <tr key={c.id}>
-                    <td>{c.institut}</td>
-                    <td>{c.contact}</td>
-                    <td>{c.email}</td>
-                    <td>{c.telephone}</td>
-                    <td>
-                      {c.ville}
-                      {c.pays ? ` (${c.pays})` : ""}
-                    </td>
-                    <td>{c.machine || "-"}</td>
-                    <td>{c.date_installation || "-"}</td>
-                    <td>{c.statut || "-"}</td>
-                    <td className="actionsCol">
-                      <div className="rowActions">
-                        <button className="ghost" onClick={() => startEdit(c)}>
-                          Modifier
-                        </button>
-                        <button className="danger" onClick={() => removeClient(c.id)}>
-                          Supprimer
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+      {activePage === "agenda" && (
+        <div className="container">
+          <div className="card">
+            <h1>Agenda</h1>
+            <p className="sub">
+              Ici on pourra afficher Google Agenda et ajouter des actions.
+            </p>
+
+            <div className="agendaPlaceholder">
+              Intégration agenda à faire
+            </div>
           </div>
-        )}
 
-        {/* NOTE: tu n’as plus de sauvegarde locale ici, tout est Firestore */}
-        <p className="footnote">Synchronisé avec Firestore ✅</p>
-      </div>
-    </div>
-  );
+          <div className="card">
+            <h2>Actions commerciales</h2>
+            <p className="sub">
+              Exemple : démo machine, rappel client, formation, SAV, rendez-vous.
+            </p>
+          </div>
+        </div>
+      )}
+
+      {activePage === "suivi" && (
+        <div className="container">
+          <div className="card">
+            <h1>Suivi clients</h1>
+            <p className="sub">
+              Relances, prochaines actions, devis envoyés, démos prévues, SAV.
+            </p>
+          </div>
+        </div>
+      )}
+    </main>
+  </div>
+);
 }
