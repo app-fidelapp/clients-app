@@ -1366,3 +1366,31 @@ body,
     opacity: 1;
   }
 }
+
+.clientModal {
+  width: 100%;
+  max-width: 860px;
+}
+
+.clientModalActions {
+  justify-content: flex-end;
+}
+
+@media (max-width: 600px) {
+  .clientModal {
+    max-width: 100%;
+    max-height: 88vh;
+    border-radius: 20px 20px 0 0;
+    padding: 16px;
+  }
+
+  .clientModalActions {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .clientModalActions button {
+    width: 100%;
+  }
+}

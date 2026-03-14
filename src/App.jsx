@@ -1,6 +1,17 @@
 import { useEffect, useState } from "react";
 import "./App.css";
 import { db, auth } from "./firebase";
+
+import Login from "./components/Login.jsx";
+import Sidebar from "./components/Sidebar";
+import ClientModal from "./components/ClientModal";
+import ActionModal from "./components/ActionModal";
+
+
+import { onAuthStateChanged } from "firebase/auth";
+
+
+
 import {
   collection,
   addDoc,
@@ -13,7 +24,6 @@ import {
   updateDoc,
   writeBatch,
 } from "firebase/firestore";
-import { onAuthStateChanged, signInWithEmailAndPassword, signOut } from "firebase/auth";
 
 const MACHINE_OPTIONS = [
   "Laser-Pro",
@@ -42,14 +52,7 @@ function emptyForm() {
 
 
 
-function handleMachineChange(e) {
-  const values = Array.from(e.target.selectedOptions, (option) => option.value);
 
-  setForm((prev) => ({
-    ...prev,
-    machines: values,
-  }));
-}
 
 function toISO(value) {
   if (!value) return "";
@@ -59,74 +62,7 @@ function toISO(value) {
 }
 
 /** ✅ Login DOIT être en dehors de App() */
-function Login() {
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [error, setError] = useState("");
-  const [loading, setLoading] = useState(false);
-  
 
-  async function onSubmit(e) {
-    e.preventDefault();
-    setError("");
-    setLoading(true);
-    try {
-      await signInWithEmailAndPassword(auth, email, password);
-    } catch (err) {
-      // option: afficher le vrai message dans la console
-      console.error(err);
-      setError("Identifiants invalides (ou Email/Password pas activé).");
-    } finally {
-      setLoading(false);
-    }
-  }
-
-  return (
-    <div className="container">
-      <div className="card" style={{ maxWidth: 420, margin: "80px auto" }}>
-        <h1 style={{ marginBottom: 6 }}>Divina-Pro</h1>
-        <div className="sub" style={{ marginBottom: 16 }}>Connexion requise</div>
-
-        <form onSubmit={onSubmit} className="form">
-          <div className="row">
-            <div className="field" style={{ minWidth: "100%" }}>
-              <label>Email</label>
-              <input
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                autoComplete="email"
-              />
-            </div>
-          </div>
-
-          <div className="row">
-            <div className="field" style={{ minWidth: "100%" }}>
-              <label>Mot de passe</label>
-              <input
-                type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                autoComplete="current-password"
-              />
-            </div>
-          </div>
-
-          {error && (
-            <p className="hint" style={{ color: "#b00020" }}>
-              {error}
-            </p>
-          )}
-
-          <div className="actions">
-            <button type="submit" disabled={loading || !email || !password}>
-              {loading ? "Connexion..." : "Se connecter"}
-            </button>
-          </div>
-        </form>
-      </div>
-    </div>
-  );
-}
 
 
 export default function App() {
@@ -159,6 +95,8 @@ export default function App() {
   const [authLoading, setAuthLoading] = useState(true);
   const [showSplash, setShowSplash] = useState(true);
   const [sortOrder, setSortOrder] = useState("desc");
+  const [showActionModal, setShowActionModal] = useState(false);
+  const [showClientModal, setShowClientModal] = useState(false);
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -245,6 +183,20 @@ export default function App() {
     setActionForm((prev) => ({ ...prev, [name]: value }));
   }
 
+  function toggleMachine(machine) {
+  setForm((prev) => {
+    const exists = prev.machines.includes(machine);
+
+    return {
+      ...prev,
+      machines: exists
+        ? prev.machines.filter((m) => m !== machine)
+        : [...prev.machines, machine],
+    };
+  });
+}
+
+
   function formatDate(ts) {
   if (!ts) return "-";
   const date = ts.toDate ? ts.toDate() : new Date(ts);
@@ -320,29 +272,30 @@ async function removeAction(id) {
   }
 
   setForm(emptyForm());
+  setShowClientModal(false);
 }
 
   function startEdit(client) {
-    setEditingId(client.id);
-    setForm({
-      institut: client.institut || "",
-      contact: client.contact || "",
-      email: client.email || "",
-      telephone: client.telephone || "",
-      ville: client.ville || "",
-      pays: client.pays || "Belgique",
-      machines: Array.isArray(client.machines)
-    ? client.machines
-    : client.machine
-    ? [client.machine]
-    : [],
-      statut: client.statut || "Prospect",
-      date_installation: client.date_installation || "",
-      notes: client.notes || "",
-    });
+  setEditingId(client.id);
+  setForm({
+    institut: client.institut || "",
+    contact: client.contact || "",
+    email: client.email || "",
+    telephone: client.telephone || "",
+    ville: client.ville || "",
+    pays: client.pays || "Belgique",
+    machines: Array.isArray(client.machines)
+      ? client.machines
+      : client.machine
+      ? [client.machine]
+      : [],
+    statut: client.statut || "Prospect",
+    date_installation: client.date_installation || "",
+    notes: client.notes || "",
+  });
 
-    window.scrollTo({ top: 0, behavior: "smooth" });
-  }
+  setShowClientModal(true);
+}
 
   async function saveEdit(e) {
     e.preventDefault();
@@ -466,221 +419,30 @@ const displayedClients = [...filteredClients].sort((a, b) => {
 
   return (
   <div className="appShell">
-    <aside className="sidebar">
-      <div className="brand">
-        <img src="/logo-divina.png" alt="Divina-Pro" className="brandLogo" />
-        <div className="brandText">
-          <strong>Divina-Pro</strong>
-          <span>Client</span>
-        </div>
-      </div>
-
-      <nav className="menu">
-        <button
-          type="button"
-          className={`menuItem ${activePage === "clients" ? "active" : ""}`}
-          onClick={() => setActivePage("clients")}
-        >
-          Clients
-        </button>
-
-        <button
-          type="button"
-          className={`menuItem ${activePage === "actions" ? "active" : ""}`}
-          onClick={() => setActivePage("actions")}
-        >
-          Actions en cours
-        </button>
-
-        <button
-          type="button"
-          className={`menuItem ${activePage === "suivi" ? "active" : ""}`}
-          onClick={() => setActivePage("suivi")}
-        >
-          Suivi clients
-        </button>
-
-          <button
-            type="button"
-            className={`menuItem ${activePage === "catalogue" ? "active" : ""}`}
-            onClick={() => setActivePage("catalogue")}
-          >
-            Catalogue
-          </button>
-
-      </nav>
-
-      <div className="sidebarBottom">
-        <button type="button" className="ghost" onClick={() => signOut(auth)}>
-          Déconnexion
-        </button>
-      </div>
-    </aside>
+   <Sidebar activePage={activePage} setActivePage={setActivePage} />
 
     <main className="mainContent">
       {activePage === "clients" && (
         <div className="container">
           <div className="topbar">
-            <div>
-              <h1>Clients</h1>
-              <div className="sub">Gestion des clients Divina-Pro</div>
-            </div>
-          </div>
+  <div>
+    <h1>Clients</h1>
+    <div className="sub">Gestion des clients Divina-Pro</div>
+  </div>
 
-          {/* CARD FORMULAIRE */}
-          <div className="card">
-            <h2>{editingId ? "Modifier un client" : "Ajouter un client"}</h2>
-
-            <form className="form" onSubmit={editingId ? saveEdit : addClient}>
-              <div className="row">
-                <div className="field">
-                  <label>Institut *</label>
-                  <input
-                    name="institut"
-                    value={form.institut}
-                    onChange={onChange}
-                    placeholder="Beauty by Loula"
-                  />
-                </div>
-
-                <div className="field">
-                  <label>Date d'installation</label>
-                  <input
-                    type="date"
-                    name="date_installation"
-                    value={form.date_installation}
-                    onChange={onChange}
-                  />
-                </div>
-              </div>
-
-              <div className="row">
-                <div className="field">
-                  <label>Contact *</label>
-                  <input
-                    name="contact"
-                    value={form.contact}
-                    onChange={onChange}
-                    placeholder="Prénom Nom"
-                  />
-                </div>
-
-                <div className="field">
-                  <label>Email *</label>
-                  <input
-                    type="email"
-                    name="email"
-                    value={form.email}
-                    onChange={onChange}
-                    placeholder="contact@institut.com"
-                  />
-                </div>
-              </div>
-
-              <div className="row">
-                <div className="field">
-                  <label>Téléphone</label>
-                  <input
-                    name="telephone"
-                    value={form.telephone}
-                    onChange={onChange}
-                    placeholder="+32 ..."
-                  />
-                </div>
-
-                <div className="field">
-                  <label>Ville</label>
-                  <input
-                    name="ville"
-                    value={form.ville}
-                    onChange={onChange}
-                    placeholder="Liège"
-                  />
-                </div>
-              </div>
-
-              <div className="row">
-                <div className="field">
-                  <label>Pays</label>
-                  <input
-                    name="pays"
-                    value={form.pays}
-                    onChange={onChange}
-                    placeholder="Belgique"
-                  />
-                </div>
-
-                <div className="field">
-                  <label>Statut</label>
-                  <select
-                    name="statut"
-                    value={form.statut}
-                    onChange={onChange}
-                  >
-                    {STATUS_OPTIONS.map((s) => (
-                      <option key={s} value={s}>
-                        {s}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-              </div>
-
-              <div className="row">
-                <div className="field full">
-                  <label>Machines</label>
-                  <div className="checkboxGroup">
-                    {MACHINE_OPTIONS.map((machine) => (
-                      <label key={machine} className="checkboxItem">
-                        <input
-                          type="checkbox"
-                          checked={form.machines.includes(machine)}
-                          onChange={() => toggleMachine(machine)}
-                        />
-                        <span>{machine}</span>
-                      </label>
-                    ))}
-                  </div>
-                </div>
-              </div>
-
-              <div className="row">
-                <div className="field full">
-                  <label>Notes</label>
-                  <textarea
-                    name="notes"
-                    value={form.notes}
-                    onChange={onChange}
-                    rows="4"
-                    placeholder="Ex: demandé devis leasing 48 mois, rappel vendredi..."
-                  />
-                </div>
-              </div>
-
-              <div className="actions">
-                <button type="submit">
-                  {editingId ? "Enregistrer" : "Ajouter"}
-                </button>
-
-                {editingId && (
-                  <button
-                    type="button"
-                    className="ghost"
-                    onClick={() => {
-                      setEditingId(null);
-                      setForm(emptyForm());
-                    }}
-                  >
-                    Annuler
-                  </button>
-                )}
-
-                <span className="hint">
-                  Institut, contact et email sont obligatoires.
-                </span>
-              </div>
-            </form>
-          </div>
+  <div className="topActions">
+    <button
+      type="button"
+      onClick={() => {
+        setEditingId(null);
+        setForm(emptyForm());
+        setShowClientModal(true);
+      }}
+    >
+      + Ajouter un client
+    </button>
+  </div>
+</div>
 
           {/* CARD TABLEAU */}
           <div className="card">
@@ -861,74 +623,17 @@ const displayedClients = [...filteredClients].sort((a, b) => {
     </div>
 
     <div className="card">
-      <h2>Ajouter une action</h2>
+  <div className="topbar">
+    <h2>Actions en cours</h2>
 
-      <form className="form" onSubmit={addAction}>
-        <div className="row">
-          <div className="field">
-            <label>Responsable</label>
-            <select
-              name="responsable"
-              value={actionForm.responsable}
-              onChange={onChangeAction}
-            >
-              {RESPONSABLES.map((r) => (
-                <option key={r} value={r}>
-                  {r}
-                </option>
-              ))}
-            </select>
-          </div>
-
-          <div className="field">
-            <label>Client</label>
-            <select
-              name="clientId"
-              value={actionForm.clientId}
-              onChange={onChangeAction}
-            >
-              <option value="">Sélectionner un client</option>
-              {clients.map((c) => (
-                <option key={c.id} value={c.id}>
-                  {c.institut} - {c.contact}
-                </option>
-              ))}
-            </select>
-          </div>
-        </div>
-
-        <div className="row">
-          <div className="field">
-            <label>Action</label>
-            <input
-              name="action"
-              value={actionForm.action}
-              onChange={onChangeAction}
-              placeholder="Ex: envoyer infos Laser"
-            />
-          </div>
-
-          <div className="field">
-            <label>Statut client</label>
-            <select
-              name="statutClient"
-              value={actionForm.statutClient}
-              onChange={onChangeAction}
-            >
-              {STATUS_OPTIONS.map((s) => (
-                <option key={s} value={s}>
-                  {s}
-                </option>
-              ))}
-            </select>
-          </div>
-        </div>
-
-        <div className="actions">
-          <button type="submit">Ajouter l'action</button>
-        </div>
-      </form>
-    </div>
+    <button
+      type="button"
+      onClick={() => setShowActionModal(true)}
+    >
+      + Ajouter une action
+    </button>
+  </div>
+</div>
 
     <div className="card">
       <h2>Liste des actions ({actions.length})</h2>
@@ -1110,7 +815,36 @@ const displayedClients = [...filteredClients].sort((a, b) => {
       </div>
     </div>
   </div>
+  
 )}
+
+
+<ClientModal
+  show={showClientModal}
+  onClose={() => setShowClientModal(false)}
+  editingId={editingId}
+  form={form}
+  onChange={onChange}
+  onSubmit={addClient}
+  machineOptions={MACHINE_OPTIONS}
+  statusOptions={STATUS_OPTIONS}
+  toggleMachine={toggleMachine}
+  emptyForm={emptyForm}
+  setForm={setForm}
+  setEditingId={setEditingId}
+/>
+
+<ActionModal
+  show={showActionModal}
+  onClose={() => setShowActionModal(false)}
+  actionForm={actionForm}
+  onChangeAction={onChangeAction}
+  onSubmit={addAction}
+  clients={clients}
+  responsables={RESPONSABLES}
+  statusOptions={STATUS_OPTIONS}
+/>
+
   </div>
 );
 }
