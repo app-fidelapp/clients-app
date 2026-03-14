@@ -2,10 +2,11 @@ import { useEffect, useState } from "react";
 import "./App.css";
 import { db, auth } from "./firebase";
 
-import Login from "./components/Login.jsx";
+import Login from "./components/Login";
 import Sidebar from "./components/Sidebar";
 import ClientModal from "./components/ClientModal";
 import ActionModal from "./components/ActionModal";
+import AgendaPage from "./components/AgendaPage";
 
 
 import { onAuthStateChanged } from "firebase/auth";
@@ -613,6 +614,8 @@ const displayedClients = [...filteredClients].sort((a, b) => {
         </div>
       )}
 
+      {activePage === "agenda" && <AgendaPage clients={clients} />}
+
       {activePage === "actions" && (
   <div className="container">
     <div className="card">
@@ -833,6 +836,7 @@ const displayedClients = [...filteredClients].sort((a, b) => {
   setForm={setForm}
   setEditingId={setEditingId}
 />
+
 
 <ActionModal
   show={showActionModal}

@@ -1,6 +1,3 @@
-
-
-
 import { auth } from "../firebase";
 import { signOut } from "firebase/auth";
 
@@ -16,6 +13,14 @@ export default function Sidebar({ activePage, setActivePage }) {
       </div>
 
       <nav className="menu">
+
+        <button
+          className={activePage === "agenda" ? "active" : ""}
+          onClick={() => setActivePage("agenda")}
+        >
+          Agenda
+        </button>
+
         <button
           type="button"
           className={`menuItem ${activePage === "clients" ? "active" : ""}`}
