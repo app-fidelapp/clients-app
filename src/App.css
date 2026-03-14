@@ -61,7 +61,28 @@ body {
   gap: 12px;
   padding: 4px 6px 10px;
 }
+.sortBtn {
+  border: none;
+  background: #f3f4f6;
+  padding: 8px 10px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 16px;
+}
 
+.filterBtn {
+  background: white;
+  border: 1px solid #e5e5e5;
+  border-radius: 8px;
+  padding: 6px 10px;
+  font-size: 18px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.filterBtn:hover {
+  background: #f7f7f7;
+}
 .brandLogo {
   width: 40px;
   height: 40px;
@@ -514,39 +535,398 @@ tbody tr:hover td {
   color: var(--muted);
   background: #fbfaf8;
 }
+.desktopTable {
+  display: block;
+}
 
-/* Responsive */
-@media (max-width: 980px) {
+.mobileCards {
+  display: none;
+}
+
+.clientCardMobile {
+  background: #ffffff;
+  border: 1px solid var(--border);
+  border-radius: 18px;
+  padding: 14px;
+  box-shadow: 0 8px 24px rgba(15, 23, 42, 0.05);
+  margin-bottom: 12px;
+}
+
+.clientCardTop {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 12px;
+  margin-bottom: 14px;
+}
+
+.clientCardTop h3 {
+  margin: 0;
+  font-size: 16px;
+  line-height: 1.2;
+  color: var(--text);
+}
+
+.clientCardTop p {
+  margin: 4px 0 0;
+  font-size: 13px;
+  color: var(--muted);
+}
+
+.clientCardGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px 12px;
+  margin-bottom: 14px;
+}
+
+.clientInfoItem {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+
+.clientInfoItem span {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--muted);
+}
+
+.clientInfoItem strong {
+  font-size: 14px;
+  color: var(--text);
+  line-height: 1.35;
+  word-break: break-word;
+}
+
+.clientCardActions {
+  display: flex;
+  gap: 10px;
+}
+
+.clientCardActions button {
+  flex: 1;
+}
+
+.statusBadge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 28px;
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.status-prospect {
+  background: #eef2ff;
+  color: #4f46e5;
+}
+
+.status-client {
+  background: #ecfdf5;
+  color: #059669;
+}
+
+.status-formation {
+  background: #eff6ff;
+  color: #2563eb;
+}
+
+.status-sav {
+  background: #fff7ed;
+  color: #ea580c;
+}
+
+.status-perdu {
+  background: #fef2f2;
+  color: #dc2626;
+}
+
+@media (max-width: 600px) {
+  .desktopTable {
+    display: none;
+  }
+
+  .mobileCards {
+    display: block;
+  }
+
+  .clientCardGrid {
+    grid-template-columns: 1fr;
+  }
+}
+.cataloguePage {
+  padding: 28px;
+}
+
+.catalogueHeader {
+  margin-bottom: 20px;
+}
+
+.catalogueHeader h2 {
+  margin: 0;
+  font-size: 28px;
+  font-weight: 700;
+  color: #16181d;
+}
+
+.catalogueHeader p {
+  margin: 6px 0 0;
+  font-size: 14px;
+  color: #6b7280;
+}
+
+.catalogueCard {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  background: #ffffff;
+  border: 1px solid #eceef3;
+  border-radius: 24px;
+  padding: 22px;
+  box-shadow: 0 12px 30px rgba(15, 23, 42, 0.06);
+  max-width: 760px;
+}
+
+.catalogueIcon {
+  width: 82px;
+  height: 82px;
+  min-width: 82px;
+  border-radius: 22px;
+  background: linear-gradient(135deg, #ff5f57, #ff2d55);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 14px 30px rgba(255, 45, 85, 0.22);
+}
+
+.catalogueIcon span {
+  color: white;
+  font-size: 18px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+}
+
+.catalogueContent {
+  flex: 1;
+  min-width: 0;
+}
+
+.catalogueContent h3 {
+  margin: 0;
+  font-size: 18px;
+  line-height: 1.35;
+  color: #111827;
+}
+
+.catalogueContent p {
+  margin: 8px 0 0;
+  font-size: 14px;
+  line-height: 1.5;
+  color: #6b7280;
+}
+
+.catalogueActions {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-top: 18px;
+}
+
+.catalogueBtn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 140px;
+  height: 46px;
+  padding: 0 18px;
+  border-radius: 14px;
+  text-decoration: none;
+  font-size: 14px;
+  font-weight: 600;
+  transition: all 0.2s ease;
+}
+
+.catalogueBtn.primary {
+  background: #111827;
+  color: #ffffff;
+  box-shadow: 0 8px 18px rgba(17, 24, 39, 0.14);
+}
+
+.catalogueBtn.primary:hover {
+  transform: translateY(-1px);
+}
+
+.catalogueBtn.secondary {
+  background: #f8fafc;
+  color: #111827;
+  border: 1px solid #e5e7eb;
+}
+
+.catalogueBtn.secondary:hover {
+  background: #f1f5f9;
+  transform: translateY(-1px);
+}
+
+@media (max-width: 600px) {
+  .cataloguePage {
+    padding: 16px 10px 22px;
+  }
+
+  .catalogueHeader h2 {
+    font-size: 22px;
+  }
+
+  .catalogueCard {
+    flex-direction: column;
+    align-items: flex-start;
+    padding: 18px;
+    border-radius: 20px;
+  }
+
+  .catalogueIcon {
+    width: 72px;
+    height: 72px;
+    min-width: 72px;
+    border-radius: 18px;
+  }
+
+  .catalogueContent h3 {
+    font-size: 16px;
+  }
+
+  .catalogueActions {
+    width: 100%;
+    flex-direction: column;
+  }
+
+  .catalogueBtn {
+    width: 100%;
+  }
+}
+
+/* =========================
+   RESPONSIVE CLEAN
+========================= */
+
+@media (max-width: 580px) {
   .appShell {
     flex-direction: column;
+    min-height: 100dvh;
   }
 
   .sidebar {
     width: 100%;
     border-right: none;
     border-bottom: 1px solid var(--border);
-    padding: 16px 12px;
+    padding: 14px 12px;
+    gap: 14px;
+    position: sticky;
+    top: 0;
+    z-index: 30;
+    background: rgba(244, 243, 240, 0.96);
+    backdrop-filter: blur(10px);
+  }
+
+  .brand {
+    padding: 0 4px;
   }
 
   .menu {
-    flex-direction: row;
-    flex-wrap: wrap;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  overflow: hidden;
+}
+
+  .menu::-webkit-scrollbar {
+    display: none;
   }
 
   .menuItem {
-    width: auto;
+  width: 100%;
+  min-width: 0;
+  white-space: normal;
+}
+
+  .sidebarBottom {
+    margin-top: 0;
   }
 
   .mainContent {
-    padding: 18px 12px 28px;
+    padding: 16px 12px 24px;
   }
 
   .container {
     max-width: none;
   }
+
+  .topbar,
+  .tableHeader,
+  .topActions,
+  .actions,
+  .modalHeader {
+    flex-wrap: wrap;
+  }
+
+  .search {
+    min-width: 0;
+    width: 100%;
+  }
+
+  .tableWrap {
+    border-radius: 16px;
+  }
+
+  table {
+    min-width: 360px;
+  }
 }
 
-@media (max-width: 700px) {
+@media (max-width: 600px) {
+  .pageClients {
+    max-width: 100%;
+  }
+
+  .pageActions {
+    max-width: 100%;
+  }
+
+  .pageCatalogue {
+    max-width: 360px;
+  }
+}
+
+@media (max-width: 600px) {
+  h1 {
+    font-size: 22px;
+    line-height: 1.15;
+  }
+
+  h2 {
+    font-size: 17px;
+    margin-bottom: 14px;
+  }
+
+  .sub {
+    font-size: 13px;
+  }
+
+  .mainContent {
+    padding: 14px 10px 22px;
+  }
+
+  .card {
+    padding: 14px;
+    margin: 12px 0;
+    border-radius: 18px;
+  }
+
   .form .row,
   .topbar,
   .actions,
@@ -555,32 +935,434 @@ tbody tr:hover td {
   .modalHeader {
     flex-direction: column;
     align-items: stretch;
+    gap: 10px;
   }
 
   .field {
     min-width: 100%;
+    gap: 6px;
   }
 
+  label {
+    font-size: 12px;
+  }
+
+  input,
+  select,
+  textarea,
   .search,
   button {
     width: 100%;
+    font-size: 16px;
+  }
+
+  input,
+  select,
+  .search,
+  button {
+    min-height: 46px;
+  }
+
+  textarea {
+    min-height: 110px;
   }
 
   .checkboxGroup {
     grid-template-columns: 1fr;
+    gap: 10px;
   }
 
-  .card {
-    padding: 16px;
-    border-radius: 18px;
+  .checkboxItem {
+    min-height: 48px;
+    padding: 0 12px;
+  }
+
+  .checkboxItem span {
+    font-size: 14px;
+  }
+
+  .rowActions {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .actionsCol {
+    width: 1%;
+    white-space: nowrap;
+  }
+
+  .modalOverlay {
+    padding: 10px;
+    align-items: flex-end;
   }
 
   .modalCard {
+    max-width: 100%;
+    max-height: 88vh;
     padding: 16px;
-    border-radius: 18px;
+    border-radius: 20px 20px 0 0;
   }
 
-  h1 {
-    font-size: 22px;
+  .agendaPlaceholder {
+    min-height: 180px;
+    padding: 16px;
+    text-align: center;
+  }
+}
+
+@media (max-width: 520px) {
+  :root {
+    --radius-card: 18px;
+    --radius-input: 12px;
+    --radius-button: 12px;
+  }
+
+  .sidebar {
+    padding: 12px 10px;
+  }
+
+  .brandLogo {
+    width: 34px;
+    height: 34px;
+  }
+
+  .brandText strong {
+    font-size: 15px;
+  }
+
+  .brandText span {
+    font-size: 12px;
+  }
+
+  .menuItem {
+    min-height: 40px;
+    padding: 0 12px;
+    font-size: 13px;
+  }
+
+  .mainContent {
+    padding: 12px 8px 18px;
+  }
+
+  .card {
+    padding: 12px;
+  }
+
+  thead th,
+  tbody td {
+    padding: 12px 12px;
+  }
+
+  .linkButton {
+    font-size: 14px;
+  }
+}
+/* =========================
+   MOBILE PROPRE SANS DÉBORDEMENT
+========================= */
+/* ===== FIX OVERFLOW MOBILE FINAL ===== */
+html,
+body,
+#root {
+  width: 100%;
+  max-width: 100%;
+  overflow-x: hidden;
+}
+
+.appShell,
+.sidebar,
+.mainContent,
+.container,
+.card,
+.pageClients,
+.pageActions,
+.pageCatalogue,
+.mobileCards,
+.clientCardMobile {
+  width: 100%;
+  max-width: 100%;
+}
+
+@media (max-width: 600px) {
+  body {
+    overflow-x: hidden;
+  }
+
+  .appShell {
+    width: 100%;
+    max-width: 100%;
+    overflow-x: hidden;
+  }
+
+  .sidebar {
+    width: 100%;
+    max-width: 100%;
+    overflow-x: hidden;
+  }
+
+  .mainContent {
+    width: 100%;
+    max-width: 100%;
+    padding: 14px 10px 22px;
+    overflow-x: hidden;
+  }
+
+  .container {
+    width: 100%;
+    max-width: 100%;
+  }
+
+  .card {
+    width: 100%;
+    max-width: 100%;
+    overflow: hidden;
+  }
+
+  .desktopTable {
+    display: none !important;
+  }
+
+  .mobileCards {
+    display: flex !important;
+    flex-direction: column;
+    gap: 12px;
+    width: 100%;
+    max-width: 100%;
+  }
+
+  .clientCardMobile {
+    width: 100%;
+    max-width: 100%;
+    padding: 14px;
+    overflow: hidden;
+  }
+
+  .clientCardTop {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 10px;
+  }
+
+  .clientCardTop > div,
+  .clientInfoItem,
+  .clientInfoItem strong,
+  .clientCardTop h3,
+  .clientCardTop p {
+    min-width: 0;
+    max-width: 100%;
+    overflow-wrap: anywhere;
+    word-break: break-word;
+  }
+
+  .clientCardGrid {
+    grid-template-columns: 1fr !important;
+  }
+
+  .clientCardActions {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    width: 100%;
+  }
+
+  .clientCardActions button {
+    width: 100%;
+  }
+
+  .menu {
+    width: 100%;
+    max-width: 100%;
+    overflow-x: auto;
+    overflow-y: hidden;
+  }
+
+  .menuItem {
+    flex: 0 0 auto;
+  }
+
+  .pageClients .tableWrap,
+.pageClients table {
+  display: none !important;
+}
+}
+
+@media (min-width: 601px) {
+  .appShell {
+    flex-direction: row !important;
+  }
+
+  .sidebar {
+    flex: 0 0 var(--sidebar-width) !important;
+    width: var(--sidebar-width) !important;
+    min-width: var(--sidebar-width) !important;
+    max-width: var(--sidebar-width) !important;
+    border-right: 1px solid var(--border) !important;
+    border-bottom: none !important;
+    position: relative !important;
+    top: auto !important;
+  }
+
+  .menu {
+    display: flex !important;
+    flex-direction: column !important;
+    grid-template-columns: none !important;
+    overflow: visible !important;
+  }
+
+  .menuItem {
+    width: 100% !important;
+    min-width: 0 !important;
+    flex: none !important;
+  }
+
+  .mainContent {
+    width: auto !important;
+    max-width: none !important;
+    padding: 28px 24px 34px !important;
+  }
+
+  .desktopTable {
+    display: block !important;
+  }
+
+  .mobileCards {
+    display: none !important;
+  }
+
+  .tableWrap,
+  table {
+    display: block !important;
+  }
+}
+.actionsMobileCards {
+  display: none;
+}
+
+.actionCardMobile {
+  background: #ffffff;
+  border: 1px solid var(--border);
+  border-radius: 18px;
+  padding: 14px;
+  box-shadow: 0 8px 24px rgba(15, 23, 42, 0.05);
+}
+
+.actionCardTop {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 12px;
+  margin-bottom: 14px;
+}
+
+.actionCardTop strong {
+  font-size: 16px;
+  line-height: 1.25;
+  color: var(--text);
+}
+
+.actionCardGrid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 10px;
+  margin-bottom: 14px;
+}
+
+@media (max-width: 600px) {
+  .actionsMobileCards {
+    display: flex !important;
+    flex-direction: column;
+    gap: 12px;
+    width: 100%;
+  }
+
+  .actionCardMobile {
+    width: 100%;
+    max-width: 100%;
+  }
+}
+
+.splashScreen {
+  position: fixed;
+  inset: 0;
+  background: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+}
+
+.splashContent {
+  text-align: center;
+}
+
+.splashTitle {
+  font-size: 28px;
+  font-weight: 600;
+  color: #111;
+
+  opacity: 0;
+  transform: translateY(10px);
+
+  animation: divinaIntro 1.2s ease forwards,
+             divinaTracking 1.2s ease forwards,
+             divinaFadeOut 0.5s ease 1.6s forwards;
+}
+
+/* apparition douce */
+@keyframes divinaIntro {
+  0% {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+
+/* disparition */
+@keyframes divinaFadeOut {
+  to {
+    opacity: 0;
+  }
+}
+
+/* loader discret */
+.splashLoader {
+  margin-top: 18px;
+  display: flex;
+  justify-content: center;
+  gap: 6px;
+}
+
+.splashLoader span {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #111;
+  opacity: 0.3;
+  animation: loaderDots 1s infinite;
+}
+
+.splashLoader span:nth-child(2) {
+  animation-delay: 0.15s;
+}
+
+.splashLoader span:nth-child(3) {
+  animation-delay: 0.3s;
+}
+
+@keyframes loaderDots {
+  0%, 80%, 100% {
+    transform: scale(0.8);
+    opacity: 0.3;
+  }
+
+  40% {
+    transform: scale(1);
+    opacity: 1;
   }
 }

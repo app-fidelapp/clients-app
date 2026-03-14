@@ -64,6 +64,7 @@ function Login() {
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  
 
   async function onSubmit(e) {
     e.preventDefault();
@@ -127,20 +128,19 @@ function Login() {
   );
 }
 
+
 export default function App() {
-
-
   const [activePage, setActivePage] = useState("clients");
   const RESPONSABLES = ["Marc", "Gabriel", "Antonio"];
   const STATUS_OPTIONS = [
-  "Prospect",
-  "Lead",
-  "Devis envoyé",
-  "Démo prévue",
-  "Client",
-  "SAV",
-  "Perdu",
-];
+    "Prospect",
+    "Lead",
+    "Devis envoyé",
+    "Démo prévue",
+    "Client",
+    "SAV",
+    "Perdu",
+  ];
 
   const [actions, setActions] = useState([]);
   const [actionForm, setActionForm] = useState({
@@ -151,25 +151,23 @@ export default function App() {
   });
 
   const [selectedClient, setSelectedClient] = useState(null);
-
   const [form, setForm] = useState(emptyForm());
   const [clients, setClients] = useState([]);
   const [search, setSearch] = useState("");
   const [editingId, setEditingId] = useState(null);
-
   const [user, setUser] = useState(null);
   const [authLoading, setAuthLoading] = useState(true);
+  const [showSplash, setShowSplash] = useState(true);
+  const [sortOrder, setSortOrder] = useState("desc");
 
-  function toggleMachine(machine) {
-  setForm((prev) => ({
-    ...prev,
-    machines: prev.machines.includes(machine)
-      ? prev.machines.filter((m) => m !== machine)
-      : [...prev.machines, machine],
-  }));
-}
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setShowSplash(false);
+    }, 1800);
 
-  // ✅ Auth listener
+    return () => clearTimeout(timer);
+  }, []);
+
   useEffect(() => {
     const unsubAuth = onAuthStateChanged(auth, (u) => {
       setUser(u);
@@ -178,7 +176,6 @@ export default function App() {
     return () => unsubAuth();
   }, []);
 
-  // ✅ Firestore listener seulement si connecté
   useEffect(() => {
     if (!user) {
       setClients([]);
@@ -198,29 +195,34 @@ export default function App() {
   }, [user]);
 
   useEffect(() => {
-  if (!user) {
-    setActions([]);
-    return;
-  }
+    if (!user) {
+      setActions([]);
+      return;
+    }
 
-  const q = query(collection(db, "actions"), orderBy("createdAt", "desc"));
+    const q = query(collection(db, "actions"), orderBy("createdAt", "desc"));
+    const unsub = onSnapshot(q, (snap) => {
+      const data = snap.docs.map((d) => ({
+        id: d.id,
+        ...d.data(),
+      }));
+      setActions(data);
+    });
 
-  const unsub = onSnapshot(q, (snap) => {
-    const data = snap.docs.map((d) => ({
-      id: d.id,
-      ...d.data(),
-    }));
-    setActions(data);
-  });
+    return () => unsub();
+  }, [user]);
 
-  return () => unsub();
-}, [user]);
-
-  // ✅ Guard global (c’est ICI, pas dans Login)
-  if (authLoading) {
+  if (showSplash || authLoading) {
     return (
-      <div className="container">
-        <p>Chargement...</p>
+      <div className="splashScreen">
+        <div className="splashContent">
+          <h1 className="splashTitle">Divina-Pro</h1>
+          <div className="splashLoader">
+            <span></span>
+            <span></span>
+            <span></span>
+          </div>
+        </div>
       </div>
     );
   }
@@ -228,7 +230,6 @@ export default function App() {
   if (!user) {
     return <Login />;
   }
-
   const isValid =
   form.institut.trim() !== "" &&
   form.contact.trim() !== "" &&
@@ -243,6 +244,28 @@ export default function App() {
     const { name, value } = e.target;
     setActionForm((prev) => ({ ...prev, [name]: value }));
   }
+
+  function formatDate(ts) {
+  if (!ts) return "-";
+  const date = ts.toDate ? ts.toDate() : new Date(ts);
+  return date.toLocaleDateString("fr-BE", {
+    day: "2-digit",
+    month: "2-digit",
+    year: "numeric",
+  });
+}
+
+function formatDateTime(ts) {
+  if (!ts) return "-";
+  const date = ts.toDate ? ts.toDate() : new Date(ts);
+  return date.toLocaleString("fr-BE", {
+    day: "2-digit",
+    month: "2-digit",
+    year: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+}
 
   async function addAction(e) {
   e.preventDefault();
@@ -339,15 +362,36 @@ async function removeAction(id) {
     await deleteDoc(doc(db, "clients", id));
   }
 
-  async function clearAll() {
-    if (!confirm("Supprimer TOUS les clients sur Firestore ?")) return;
+  const DELETE_PIN = "2111"; // change ton code ici
 
-    const batch = writeBatch(db);
-    clients.forEach((c) => batch.delete(doc(db, "clients", c.id)));
-    await batch.commit();
+async function clearAll() {
+
+  const pin = prompt("Entrez le code PIN à 4 chiffres pour supprimer tous les clients");
+
+  if (!pin) return;
+
+  if (!/^\d{4}$/.test(pin)) {
+    alert("Le PIN doit contenir 4 chiffres.");
+    return;
   }
 
+  if (pin !== DELETE_PIN) {
+    alert("Code PIN incorrect.");
+    return;
+  }
+
+  if (!confirm("Supprimer TOUS les clients sur Firestore ?")) return;
+
+  const batch = writeBatch(db);
+  clients.forEach((c) => batch.delete(doc(db, "clients", c.id)));
+  await batch.commit();
+
+  alert("Tous les clients ont été supprimés.");
+}
+
+  
   const qSearch = search.trim().toLowerCase();
+
 const filteredClients = !qSearch
   ? clients
   : clients.filter((c) =>
@@ -366,6 +410,14 @@ const filteredClients = !qSearch
         .toLowerCase()
         .includes(qSearch)
     );
+
+const displayedClients = [...filteredClients].sort((a, b) => {
+  if (!a.createdAt) return 1;
+  if (!b.createdAt) return -1;
+
+  const diff = a.createdAt.seconds - b.createdAt.seconds;
+  return sortOrder === "asc" ? diff : -diff;
+});
 
   function exportCSV() {
     const headers = [
@@ -447,6 +499,15 @@ const filteredClients = !qSearch
         >
           Suivi clients
         </button>
+
+          <button
+            type="button"
+            className={`menuItem ${activePage === "catalogue" ? "active" : ""}`}
+            onClick={() => setActivePage("catalogue")}
+          >
+            Catalogue
+          </button>
+
       </nav>
 
       <div className="sidebarBottom">
@@ -633,62 +694,151 @@ const filteredClients = !qSearch
               />
             </div>
 
-            {filteredClients.length === 0 ? (
-              <p className="empty">Aucun client trouvé.</p>
-            ) : (
-              <div className="tableWrap">
-                <table>
-                  <thead>
-                    <tr>
-                      <th>Institut</th>
-                      <th>Contact</th>
-                      <th>Email</th>
-                      <th>Téléphone</th>
-                      <th>Ville</th>
-                      <th>Machine</th>
-                      <th>Date install</th>
-                      <th>Statut</th>
-                      <th className="actionsCol">Actions</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {filteredClients.map((c) => (
-                      <tr key={c.id}>
-                        <td>{c.institut}</td>
-                        <td>{c.contact}</td>
-                        <td>{c.email}</td>
-                        <td>{c.telephone || "-"}</td>
-                        <td>
-                          {c.ville || ""}
-                          {c.pays ? ` (${c.pays})` : ""}
-                        </td>
-                        <td>{c.machines?.join(", ") || "-"}</td>
-                        <td>{c.date_installation || "-"}</td>
-                        <td>{c.statut || "-"}</td>
-                        <td className="actionsCol">
-                          <div className="rowActions">
-                            <button
-                              type="button"
-                              className="ghost"
-                              onClick={() => startEdit(c)}
-                            >
-                              Modifier
-                            </button>
-                            <button
-                              type="button"
-                              className="danger"
-                              onClick={() => removeClient(c.id)}
-                            >
-                              Supprimer
-                            </button>
-                          </div>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            )}
+              {filteredClients.length === 0 ? (
+                <p className="empty">Aucun client trouvé.</p>
+              ) : (
+  
+  <>
+    <div className="desktopTable">
+      <div className="tableWrap">
+        <table>
+          <thead>
+            <tr>
+              <th
+  onClick={() => setSortOrder(sortOrder === "asc" ? "desc" : "asc")}
+  style={{ cursor: "pointer" }}
+>
+  Date encodage {sortOrder === "asc" ? "↑" : "↓"}
+</th>
+              <th>Institut</th>
+              <th>Contact</th>
+              <th>Email</th>
+              <th>Téléphone</th>
+              <th>Ville</th>
+              <th>Machine</th>
+              <th>Date install</th>
+              <th>Statut</th>
+              <th className="actionsCol">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            {displayedClients.map((c) => (
+              <tr key={c.id}>
+                <td>{formatDateTime(c.createdAt)}</td>
+                <td>{c.institut}</td>
+                <td>{c.contact}</td>
+                <td>{c.email}</td>
+                <td>{c.telephone || "-"}</td>
+                <td>
+                  {c.ville || ""}
+                  {c.pays ? ` (${c.pays})` : ""}
+                </td>
+                <td>{c.machines?.join(", ") || "-"}</td>
+                <td>{c.date_installation || "-"}</td>
+                <td>
+                  <span className={`statusBadge status-${(c.statut || "").toLowerCase()}`}>
+                    {c.statut || "-"}
+                  </span>
+                </td>
+                <td className="actionsCol">
+                  <div className="rowActions">
+                    <button
+                      type="button"
+                      className="ghost"
+                      onClick={() => startEdit(c)}
+                    >
+                      Modifier
+                    </button>
+                    <button
+                      type="button"
+                      className="danger"
+                      onClick={() => removeClient(c.id)}
+                    >
+                      Supprimer
+                    </button>
+                  </div>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+
+    <div className="mobileCards">
+      <div
+  className="mobileSortTitle"
+  onClick={() => setSortOrder(sortOrder === "asc" ? "desc" : "asc")}
+>
+  Date encodage {sortOrder === "asc" ? "↑" : "↓"}
+</div>
+  {displayedClients.map((c) => (
+
+    
+        <div className="clientCardMobile" key={c.id}>
+          <div className="clientCardTop">
+            <div>
+              <h3>{c.institut || "Sans nom"}</h3>
+              <p>{c.contact || "-"}</p>
+            </div>
+
+            <span className={`statusBadge status-${(c.statut || "").toLowerCase()}`}>
+              {c.statut || "-"}
+            </span>
+          </div>
+
+          <div className="clientCardGrid">
+            <div className="clientInfoItem">
+              <span>Email</span>
+              <strong>{c.email || "-"}</strong>
+            </div>
+
+            <div className="clientInfoItem">
+              <span>Téléphone</span>
+              <strong>{c.telephone || "-"}</strong>
+            </div>
+
+            <div className="clientInfoItem">
+              <span>Ville</span>
+              <strong>
+                {c.ville || "-"}
+                {c.pays ? ` (${c.pays})` : ""}
+              </strong>
+            </div>
+
+            <div className="clientInfoItem">
+              <span>Machine</span>
+              <strong>{c.machines?.join(", ") || "-"}</strong>
+            </div>
+
+            <div className="clientInfoItem">
+              <span>Date install</span>
+              <strong>{c.date_installation || "-"}</strong>
+            </div>
+          </div>
+
+          <div className="clientCardActions">
+            <button
+              type="button"
+              className="ghost"
+              onClick={() => startEdit(c)}
+            >
+              Modifier
+            </button>
+            <button
+              type="button"
+              className="danger"
+              onClick={() => removeClient(c.id)}
+            >
+              Supprimer
+            </button>
+          </div>
+        </div>
+      ))}
+    </div>
+  </>
+)}
 
             {clients.length > 0 && (
               <p className="footnote">
@@ -786,48 +936,95 @@ const filteredClients = !qSearch
       {actions.length === 0 ? (
         <p className="empty">Aucune action en cours.</p>
       ) : (
-        <div className="tableWrap">
-  <table>
-    <thead>
-      <tr>
-        <th>Responsable</th>
-        <th>Client</th>
-        <th>Action</th>
-        <th>Statut client</th>
-        <th className="actionsCol">Actions</th>
-      </tr>
-    </thead>
-    <tbody>
-      {actions.map((a) => (
-        <tr key={a.id}>
-          <td>{a.responsable}</td>
-          <td>
-            <button
-              type="button"
-              className="linkButton"
-              onClick={() => setSelectedClient(getClientById(a.clientId))}
-            >
-              {a.clientNom}
-            </button>
-          </td>
-          <td>{a.action}</td>
-          <td>{a.statutClient}</td>
-          <td className="actionsCol">
-            <div className="rowActions">
-              <button
-                type="button"
-                className="danger"
-                onClick={() => removeAction(a.id)}
-              >
-                Supprimer
-              </button>
-            </div>
-          </td>
-        </tr>
-      ))}
-    </tbody>
-  </table>
-</div>
+       <>
+  <div className="desktopTable">
+    <div className="tableWrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Responsable</th>
+            <th>Client</th>
+            <th>Action</th>
+            <th>Statut client</th>
+            <th className="actionsCol">Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          {actions.map((a) => (
+            <tr key={a.id}>
+              <td>{a.responsable}</td>
+              <td>
+                <button
+                  type="button"
+                  className="linkButton"
+                  onClick={() => setSelectedClient(getClientById(a.clientId))}
+                >
+                  {a.clientNom}
+                </button>
+              </td>
+              <td>{a.action}</td>
+              <td>{a.statutClient}</td>
+              <td className="actionsCol">
+                <div className="rowActions">
+                  <button
+                    type="button"
+                    className="danger"
+                    onClick={() => removeAction(a.id)}
+                  >
+                    Supprimer
+                  </button>
+                </div>
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div className="actionsMobileCards">
+    {actions.map((a) => (
+      <div className="actionCardMobile" key={a.id}>
+        <div className="actionCardTop">
+          <strong>{a.clientNom}</strong>
+          <span className="statusBadge">
+            {a.statutClient || "-"}
+          </span>
+        </div>
+
+        <div className="actionCardGrid">
+          <div className="clientInfoItem">
+            <span>Responsable</span>
+            <strong>{a.responsable || "-"}</strong>
+          </div>
+
+          <div className="clientInfoItem">
+            <span>Action</span>
+            <strong>{a.action || "-"}</strong>
+          </div>
+        </div>
+
+        <div className="clientCardActions">
+          <button
+            type="button"
+            className="ghost"
+            onClick={() => setSelectedClient(getClientById(a.clientId))}
+          >
+            Voir le client
+          </button>
+
+          <button
+            type="button"
+            className="danger"
+            onClick={() => removeAction(a.id)}
+          >
+            Supprimer
+          </button>
+        </div>
+      </div>
+    ))}
+  </div>
+</>
       )}
     </div>
   </div>
@@ -843,6 +1040,47 @@ const filteredClients = !qSearch
           </div>
         </div>
       )}
+
+        {activePage === "catalogue" && (
+  <div className="cataloguePage">
+    <div className="catalogueHeader">
+      <div>
+        <h2>Catalogue Divina-Pro</h2>
+        <p>Consultez et téléchargez le dernier catalogue disponible.</p>
+      </div>
+    </div>
+
+    <div className="catalogueCard">
+      <div className="catalogueIcon">
+        <span>PDF</span>
+      </div>
+
+      <div className="catalogueContent">
+        <h3>Catalogue Divina-Pro 2026.pdf</h3>
+        <p>Version officielle du catalogue commercial Divina-Pro.</p>
+
+        <div className="catalogueActions">
+          <a
+            href="/catalogue-divina-pro.pdf"
+            target="_blank"
+            rel="noreferrer"
+            className="catalogueBtn secondary"
+          >
+            Ouvrir
+          </a>
+
+          <a
+            href="/catalogue-divina-pro.pdf"
+            download
+            className="catalogueBtn primary"
+          >
+            Télécharger
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+)}
     </main>
     {selectedClient && (
   <div className="modalOverlay" onClick={() => setSelectedClient(null)}>
